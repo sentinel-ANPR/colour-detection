@@ -22,9 +22,9 @@ ENCODER_PATH = "encoder.pkl"
 CLASSES = ['Black', 'Blue', 'Gray', 'White', 'Red', 'Night', 'Other']
 
 # Ensemble Weights
-W_CLS = 0.70  # YOLO Weight
-W_SVM = 0.30  # SVM Weight
-CONF_THRESH = 0.5  # If combined score is lower, it goes to "Other"
+W_CLS = 0.60  # YOLO Weight
+W_SVM = 0.40  # SVM Weight
+CONF_THRESH = 0.45  # If combined score is lower, it goes to "Other"
 BOOST_VAL = 0.10    # Boost added if both models agree
 
 # ==========================================
