@@ -47,10 +47,7 @@ class ImageEnhancer:
         img = self.adjust_gamma(image)
         
         # Step 2: CLAHE (Dehaze / Local Contrast)
-        img = self.apply_clahe_color(img)
-        
-        # Step 3: Sharpening (Optional - good for OCR/Plates)
-        img = self.sharpen(img)
+        # img = self.apply_clahe_color(img)
         
         return img
 

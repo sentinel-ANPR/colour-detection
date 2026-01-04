@@ -1,0 +1,18 @@
+--- SVM CLASSES (from encoder.pkl) ---
+Raw List: ['Black' 'Blue' 'Gray' 'Red' 'White']
+Total: 5
+  ID 0: Black
+  ID 1: Blue
+  ID 2: Gray
+  ID 3: Red
+  ID 4: White
+
+========================================
+
+--- YOLO CLASSES (from colour-yolo.pt) ---
+Raw Dict: {0: 'black', 1: 'blue', 2: 'gray', 3: 'red', 4: 'white'}
+  ID 0: black
+  ID 1: blue
+  ID 2: gray
+  ID 3: red
+  ID 4: white
