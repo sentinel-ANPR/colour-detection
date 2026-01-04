@@ -45,4 +45,4 @@ def split_data():
     print("Data preparation complete!")
 
 if __name__ == "__main__":
-    split_data()
+    split_data()    
