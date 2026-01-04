@@ -271,7 +271,10 @@ def run_pipeline():
         output_img = original_img.copy()
         
         # Draw Hex Square
-        cv2.rectangle(output_img, (10, 10), (70, 70), rgb_val[::-1], -1) # RGB to BGR for cv2
+        color_bgr = tuple(int(c) for c in rgb_val[::-1])
+
+        # Draw Hex Square
+        cv2.rectangle(output_img, (10, 10), (70, 70), color_bgr, -1)
         cv2.rectangle(output_img, (10, 10), (70, 70), (255, 255, 255), 2) # Border
 
         # Draw Text Info
