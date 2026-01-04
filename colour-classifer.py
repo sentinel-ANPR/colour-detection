@@ -9,8 +9,8 @@ from collections import Counter
 # ==========================================
 # CONFIGURATION
 # ==========================================
-INPUT_FOLDER = "input_cars"        # Folder containing your cropped car images
-OUTPUT_BASE = "sorted_output"      # Where the 7 folders will be created
+INPUT_FOLDER = "/opt/sentinel/extended/colour-test/input_cars"        # Folder containing your cropped car images
+OUTPUT_BASE = "/opt/sentinel/extended/colour-test/sorted_output"      # Where the 7 folders will be created
 
 # Models
 YOLO_MODEL_PATH = "colour-yolo.pt"
