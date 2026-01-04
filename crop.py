@@ -28,7 +28,7 @@ def crop_vehicles_from_image(image_path, model, color_prefix=""):
     
     # Vehicle class IDs in COCO dataset
     # 2: car, 3: motorcycle, 5: bus, 7: truck
-    vehicle_classes = [2, 3, 5, 7]
+    vehicle_classes = [2]
     
     # Get directory and filename info
     image_dir = os.path.dirname(image_path)
