@@ -21,11 +21,11 @@ ENCODER_PATH = "encoder.pkl"
 # Classes
 CLASSES = ['Black', 'Blue', 'Gray', 'White', 'Red', 'Night', 'Other']
 
-# Ensemble Weights
-W_CLS = 0.60  # YOLO Weight
-W_SVM = 0.40  # SVM Weight
-CONF_THRESH = 0.45  # If combined score is lower, it goes to "Other"
-BOOST_VAL = 0.10    # Boost added if both models agree
+# Ensemble Weights (Used only when models agree)
+W_CLS = 0.65  # YOLO Weight
+W_SVM = 0.35  # SVM Weight
+CONF_THRESH = 0.55  # If final score is lower, it goes to "Other"
+BOOST_VAL = 0.05    # Boost added if both models agree
 
 # ==========================================
 # 1. IMAGE PROCESSING HELPERS
@@ -217,9 +217,7 @@ def run_pipeline():
         # Run inference
         results = yolo_model(enhanced_img, verbose=False)
         
-        # Parse YOLO probs (assuming standard structure)
-        # We need to map YOLO class indices to names. 
-        # Check yolo_model.names to match keys with our target list.
+        # Parse YOLO probs
         yolo_probs_dict = {k: 0.0 for k in folders if k != 'Night' and k != 'Other'}
         
         if results[0].probs is not None:
@@ -231,34 +229,54 @@ def run_pipeline():
                 if class_name in yolo_probs_dict:
                     yolo_probs_dict[class_name] = float(conf)
         else:
-            # If YOLO fails/detects nothing, rely on SVM
             print(f"[WARN] YOLO gave no output for {fname}")
 
-        # --- STEP E: Ensemble & Boost ---
-        final_scores = {}
+        # --- STEP E: Hybrid Ensemble Logic (UPDATED) ---
         
-        # Calculate weighted average for shared classes
-        for cls in yolo_probs_dict.keys():
-            s_p = svm_probs_dict.get(cls, 0.0)
-            y_p = yolo_probs_dict.get(cls, 0.0)
-            
-            score = (y_p * W_CLS) + (s_p * W_SVM)
-            final_scores[cls] = score
-
-        # Identify top class
-        best_class = max(final_scores, key=final_scores.get)
-        best_conf = final_scores[best_class]
-
-        # Apply Boost if they agree
+        # 1. Get Top Picks from each model
+        svm_score = svm_probs_raw.max()
+        # Find the single best class from YOLO
         yolo_top_class = max(yolo_probs_dict, key=yolo_probs_dict.get)
-        
-        if yolo_top_class == svm_top_class:
-            best_conf += BOOST_VAL  # Give it a bump
-            # Clamp to 1.0
-            best_conf = min(best_conf, 1.0)
+        yolo_score = yolo_probs_dict[yolo_top_class]
 
-        # Threshold Check
-        final_label = best_class
+        final_label = "Other"
+        best_conf = 0.0
+
+        # 2. The Decision Tree
+        if svm_top_class == yolo_top_class:
+            # --- SCENARIO A: AGREEMENT ---
+            # Both models see the same thing. Combine & Boost.
+            raw_avg = (svm_score * W_SVM) + (yolo_score * W_CLS)
+            best_conf = raw_avg + BOOST_VAL
+            best_conf = min(best_conf, 1.0) # Cap at 1.0
+            final_label = svm_top_class
+            
+        else:
+            # --- SCENARIO B: CONFLICT ---
+            diff = abs(svm_score - yolo_score)
+            
+            if diff < 0.10:
+                # --- SUB-CASE: CLOSE CALL (Trust YOLO) ---
+                # Example: SVM says Red (0.55), YOLO says Orange (0.52). 
+                # Difference is small (< 10%), so we default to YOLO (usually more robust).
+                final_label = yolo_top_class
+                best_conf = yolo_score
+                print(f"   [Conflict-Close] Trusting YOLO: {yolo_top_class} ({yolo_score:.2f}) over SVM {svm_top_class}")
+            
+            else:
+                # --- SUB-CASE: CLEAR WINNER (Trust Highest) ---
+                # Example: SVM says Blue (0.79), YOLO says Gray (0.50).
+                # Difference is large (> 10%), so we trust the confident one.
+                if svm_score > yolo_score:
+                    final_label = svm_top_class
+                    best_conf = svm_score
+                    print(f"   [Conflict-Clear] SVM wins: {svm_top_class} ({svm_score:.2f})")
+                else:
+                    final_label = yolo_top_class
+                    best_conf = yolo_score
+                    print(f"   [Conflict-Clear] YOLO wins: {yolo_top_class} ({yolo_score:.2f})")
+
+        # 3. Final Threshold Check
         if best_conf < CONF_THRESH:
             final_label = 'Other'
 
@@ -279,12 +297,8 @@ def run_pipeline():
         text_final = f"Final: {final_label} ({best_conf*100:.1f}%)"
         
         # Individual Model Predictions (Class + Confidence)
-        svm_score = svm_probs_raw.max()
         text_svm   = f"SVM: {svm_top_class} ({svm_score:.2f})"
-        
-        yolo_score = yolo_probs_dict[yolo_top_class]
         text_yolo  = f"YOLO: {yolo_top_class} ({yolo_score:.2f})"
-        
         text_hex   = f"Hex: {hex_code}"
         
         # 3. Draw Text (Stacked for readability)
