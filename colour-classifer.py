@@ -272,36 +272,43 @@ def run_pipeline():
         # 1. Draw Hex Square (Fixed Integer Conversion)
         color_bgr = tuple(int(c) for c in rgb_val[::-1])
         cv2.rectangle(output_img, (10, 10), (70, 70), color_bgr, -1)
-        cv2.rectangle(output_img, (10, 10), (70, 70), (255, 255, 255), 2) # White Border
+        cv2.rectangle(output_img, (10, 10), (70, 70), (255, 255, 255), 2) # Border
 
-        # 2. Retrieve Individual Scores
-        # We look up the score for the 'best_class' (the winner before thresholding)
-        s_score = svm_probs_dict.get(best_class, 0.0)
-        y_score = yolo_probs_dict.get(best_class, 0.0)
-
-        # 3. Define Text Lines
-        text_main = f"{final_label} ({best_conf*100:.1f}%)"
-        text_scores = f"SVM: {s_score:.2f} | YOLO: {y_score:.2f}"
-        text_hex = f"Hex: {hex_code}"
+        # 2. Prepare Text Strings
+        # Final Ensemble Result
+        text_final = f"Final: {final_label} ({best_conf*100:.1f}%)"
         
-        # 4. Draw Text
+        # Individual Model Predictions (Class + Confidence)
+        svm_score = svm_probs_raw.max()
+        text_svm   = f"SVM: {svm_top_class} ({svm_score:.2f})"
+        
+        yolo_score = yolo_probs_dict[yolo_top_class]
+        text_yolo  = f"YOLO: {yolo_top_class} ({yolo_score:.2f})"
+        
+        text_hex   = f"Hex: {hex_code}"
+        
+        # 3. Draw Text (Stacked for readability)
         # Line 1: Final Decision (Green, Large)
-        cv2.putText(output_img, text_main, (80, 40), cv2.FONT_HERSHEY_SIMPLEX, 
-                    0.8, (0, 255, 0), 2, cv2.LINE_AA)
+        cv2.putText(output_img, text_final, (80, 35), cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.7, (0, 255, 0), 2, cv2.LINE_AA)
         
-        # Line 2: Model Breakdown (Yellow, Medium) - NEW
-        cv2.putText(output_img, text_scores, (80, 65), cv2.FONT_HERSHEY_SIMPLEX, 
+        # Line 2: SVM (Cyan, Small)
+        cv2.putText(output_img, text_svm, (80, 60), cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.5, (255, 255, 0), 1, cv2.LINE_AA)
+
+        # Line 3: YOLO (Yellow, Small)
+        cv2.putText(output_img, text_yolo, (80, 80), cv2.FONT_HERSHEY_SIMPLEX, 
                     0.5, (0, 255, 255), 1, cv2.LINE_AA)
 
-        # Line 3: Hex Code (Gray, Small)
-        cv2.putText(output_img, text_hex, (80, 90), cv2.FONT_HERSHEY_SIMPLEX, 
-                    0.6, (200, 200, 200), 1, cv2.LINE_AA)
+        # Line 4: Hex Code (Gray, Small)
+        cv2.putText(output_img, text_hex, (80, 100), cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.5, (200, 200, 200), 1, cv2.LINE_AA)
 
         # Save to correct folder
         save_dir = os.path.join(OUTPUT_BASE, final_label)
         cv2.imwrite(os.path.join(save_dir, fname), output_img)
         
-        print(f"File: {fname} -> {final_label} (Conf: {best_conf:.2f}) [Hex: {hex_code}]")
+        print(f"File: {fname} -> {final_label} | SVM: {svm_top_class} | YOLO: {yolo_top_class}")
 
     print("\n[DONE] Processing complete.")
 
