@@ -101,32 +101,55 @@ def get_hex_color(image_bgr, k=1):
 # ==========================================
 def extract_svm_features(image):
     """
-    **CRITICAL**: This must match the logic used to train 'svm_model.pkl'.
-    Extracts HSV histograms + Mean/Std from the hood area.
+    Extracts 32 features to match the trained SVM model.
+    Structure:
+    - H Hist (12) + S Hist (4) + V Hist (8) = 24
+    - Mean (3) + Std (3) = 6
+    - P90 Sat + P90 Val = 2
+    Total = 32
     """
-    # 1. Crop to hood (bottom center) to avoid background noise
-    h, w = image.shape[:2]
-    crop = image[int(h*0.5):int(h*0.95), int(w*0.2):int(w*0.8)]
-    if crop.size == 0: crop = image # Fallback
+    # 1. Hood Crop (Focus on the center-bottom to catch the hood)
+    h, w, _ = image.shape
+    crop = image[int(h*0.50):int(h*0.75), int(w*0.35):int(w*0.65)]
+    if crop.size == 0: crop = image
+    
+    # 2. Internal Preprocess (Matches Training Logic)
+    # We apply blur and slight saturation boost here to match training data
+    crop = cv2.GaussianBlur(crop, (5, 5), 0)
+    hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+    
+    # Boost Saturation slightly (helps differentiate Grays vs Colors)
+    s = cv2.multiply(s, 1.5)
+    
+    # CLAHE on Value channel (handles shadows)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    v = clahe.apply(v)
 
-    img_hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+    # 3. Features
+    # Histograms
+    hist_h = cv2.normalize(cv2.calcHist([h], [0], None, [12], [0, 180]), None).flatten()
+    hist_s = cv2.normalize(cv2.calcHist([s], [0], None, [4], [0, 256]), None).flatten()
+    hist_v = cv2.normalize(cv2.calcHist([v], [0], None, [8], [0, 256]), None).flatten() # NOTE: 8 bins here!
+    
+    # Statistics
+    mean_h, std_h = cv2.meanStdDev(h)
+    mean_s, std_s = cv2.meanStdDev(s)
+    mean_v, std_v = cv2.meanStdDev(v)
+    
+    # 90th Percentiles (To detect highlights/peaks)
+    p90_s = np.percentile(s, 90)
+    p90_v = np.percentile(v, 90)
 
-    # 2. HSV Means and Stds
-    mean, std = cv2.meanStdDev(img_hsv)
-    features = np.concatenate([mean, std]).flatten()
-
-    # 3. Color Histograms
-    # H (Hue): 12 bins, S (Sat): 4 bins, V (Val): 4 bins
-    h_hist = cv2.calcHist([img_hsv], [0], None, [12], [0, 180])
-    s_hist = cv2.calcHist([img_hsv], [1], None, [4], [0, 256])
-    v_hist = cv2.calcHist([img_hsv], [2], None, [4], [0, 256])
-
-    # Normalize histograms
-    cv2.normalize(h_hist, h_hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-    cv2.normalize(s_hist, s_hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-    cv2.normalize(v_hist, v_hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-
-    features = np.concatenate([features, h_hist.flatten(), s_hist.flatten(), v_hist.flatten()])
+    # Concatenate all 32 features
+    features = np.concatenate([
+        hist_h, hist_s, hist_v, 
+        mean_h.flatten(), std_h.flatten(), 
+        mean_s.flatten(), std_s.flatten(), 
+        mean_v.flatten(), std_v.flatten(), 
+        [p90_s, p90_v]
+    ])
+    
     return features.reshape(1, -1)
 
 # ==========================================
