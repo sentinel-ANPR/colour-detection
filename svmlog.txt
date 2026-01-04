@@ -1,0 +1,70 @@
+venv) root@dellemc:/workspace/sentinel/colour_classifer# nano svmm_hood.py
+(venv) root@dellemc:/workspace/sentinel/colour_classifer# python svmm_hood.py
+2026-01-04 09:13:42 - INFO - Starting Data Loading (Hood Crop Strategy)...
+2026-01-04 09:13:44 - INFO - Loaded 252 images for class 'Red'
+2026-01-04 09:13:45 - INFO - Loaded 255 images for class 'White'
+2026-01-04 09:13:46 - INFO - Loaded 162 images for class 'Blue'
+2026-01-04 09:13:47 - INFO - Loaded 194 images for class 'Black'
+2026-01-04 09:13:49 - INFO - Loaded 241 images for class 'Gray'
+2026-01-04 09:13:49 - INFO - Starting Grid Search...
+Fitting 3 folds for each of 15 candidates, totalling 45 fits
+[CV] END .........................C=1, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END .........................C=1, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END .........................C=1, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END ........................C=1, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END ........................C=1, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END ........................C=1, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END .......................C=1, gamma=0.001, kernel=rbf; total time=   0.1s
+[CV] END .......................C=1, gamma=0.001, kernel=rbf; total time=   0.1s
+[CV] END .......................C=1, gamma=0.001, kernel=rbf; total time=   0.1s
+[CV] END ........................C=10, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END ........................C=10, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END ........................C=10, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END .......................C=10, gamma=0.01, kernel=rbf; total time=   0.0s
+[CV] END .......................C=10, gamma=0.01, kernel=rbf; total time=   0.0s
+[CV] END .......................C=10, gamma=0.01, kernel=rbf; total time=   0.0s
+[CV] END ......................C=10, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END ......................C=10, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END ......................C=10, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END ........................C=50, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END ........................C=50, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END ........................C=50, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END .......................C=50, gamma=0.01, kernel=rbf; total time=   0.0s
+[CV] END .......................C=50, gamma=0.01, kernel=rbf; total time=   0.0s
+[CV] END .......................C=50, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END ......................C=50, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END ......................C=50, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END ......................C=50, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END .......................C=100, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END .......................C=100, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END .......................C=100, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END ......................C=100, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END ......................C=100, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END ......................C=100, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END .....................C=100, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END .....................C=100, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END .....................C=100, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END .......................C=200, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END .......................C=200, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END .......................C=200, gamma=0.1, kernel=rbf; total time=   0.1s
+[CV] END ......................C=200, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END ......................C=200, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END ......................C=200, gamma=0.01, kernel=rbf; total time=   0.1s
+[CV] END .....................C=200, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END .....................C=200, gamma=0.001, kernel=rbf; total time=   0.0s
+[CV] END .....................C=200, gamma=0.001, kernel=rbf; total time=   0.0s
+2026-01-04 09:13:52 - INFO - Best Parameters found: {'C': 50, 'gamma': 0.01, 'kernel': 'rbf'}
+2026-01-04 09:13:52 - INFO - Validation Accuracy: 0.8462
+2026-01-04 09:13:52 - INFO - Saving model to artifacts/hood_crop...
+2026-01-04 09:13:52 - INFO -
+              precision    recall  f1-score   support
+
+       Black       0.72      0.72      0.72        39
+        Blue       0.76      0.81      0.79        32
+        Gray       0.84      0.75      0.79        48
+         Red       0.98      0.98      0.98        51
+       White       0.87      0.92      0.90        51
+
+    accuracy                           0.85       221
+   macro avg       0.83      0.84      0.83       221
+weighted avg       0.85      0.85      0.85       221
