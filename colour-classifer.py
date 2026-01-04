@@ -24,7 +24,7 @@ CLASSES = ['Black', 'Blue', 'Gray', 'White', 'Red', 'Night', 'Other']
 # Ensemble Weights
 W_CLS = 0.70  # YOLO Weight
 W_SVM = 0.30  # SVM Weight
-CONF_THRESH = 0.55  # If combined score is lower, it goes to "Other"
+CONF_THRESH = 0.5  # If combined score is lower, it goes to "Other"
 BOOST_VAL = 0.10    # Boost added if both models agree
 
 # ==========================================
@@ -263,27 +263,38 @@ def run_pipeline():
             final_label = 'Other'
 
         # --- STEP F: Hex Extraction & Visualization ---
-        # Extract ROI for consistent color picking
         roi = extract_color_roi(cv2.cvtColor(original_img, cv2.COLOR_BGR2RGB))
         hex_code, rgb_val = get_hex_color(cv2.cvtColor(roi, cv2.COLOR_RGB2BGR))
 
         # --- STEP G: Overlay & Save ---
         output_img = original_img.copy()
         
-        # Draw Hex Square
+        # 1. Draw Hex Square (Fixed Integer Conversion)
         color_bgr = tuple(int(c) for c in rgb_val[::-1])
-
-        # Draw Hex Square
         cv2.rectangle(output_img, (10, 10), (70, 70), color_bgr, -1)
-        cv2.rectangle(output_img, (10, 10), (70, 70), (255, 255, 255), 2) # Border
+        cv2.rectangle(output_img, (10, 10), (70, 70), (255, 255, 255), 2) # White Border
 
-        # Draw Text Info
-        text = f"{final_label} ({best_conf*100:.1f}%)"
-        text2 = f"Hex: {hex_code}"
+        # 2. Retrieve Individual Scores
+        # We look up the score for the 'best_class' (the winner before thresholding)
+        s_score = svm_probs_dict.get(best_class, 0.0)
+        y_score = yolo_probs_dict.get(best_class, 0.0)
+
+        # 3. Define Text Lines
+        text_main = f"{final_label} ({best_conf*100:.1f}%)"
+        text_scores = f"SVM: {s_score:.2f} | YOLO: {y_score:.2f}"
+        text_hex = f"Hex: {hex_code}"
         
-        cv2.putText(output_img, text, (80, 40), cv2.FONT_HERSHEY_SIMPLEX, 
+        # 4. Draw Text
+        # Line 1: Final Decision (Green, Large)
+        cv2.putText(output_img, text_main, (80, 40), cv2.FONT_HERSHEY_SIMPLEX, 
                     0.8, (0, 255, 0), 2, cv2.LINE_AA)
-        cv2.putText(output_img, text2, (80, 70), cv2.FONT_HERSHEY_SIMPLEX, 
+        
+        # Line 2: Model Breakdown (Yellow, Medium) - NEW
+        cv2.putText(output_img, text_scores, (80, 65), cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.5, (0, 255, 255), 1, cv2.LINE_AA)
+
+        # Line 3: Hex Code (Gray, Small)
+        cv2.putText(output_img, text_hex, (80, 90), cv2.FONT_HERSHEY_SIMPLEX, 
                     0.6, (200, 200, 200), 1, cv2.LINE_AA)
 
         # Save to correct folder
